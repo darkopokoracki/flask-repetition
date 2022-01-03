@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>proizvodi</title>
+    <style>
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        img {
+            width: 300px;
+        }
+
+        .proizvodi {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="proizvodi">
+            {% for proizvod in proizvodi %}
+                <div class="proizvod">
+                    <h1>{{ proizvod.naziv }}</h1>
+                    <p>{{ proizvod.cena }}</p>
+                    <img src="{{ proizvod.slika }}" alt="">
+                    <h2>{{ proizvod.kolicina }}</h2>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

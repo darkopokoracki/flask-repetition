@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forma Za Post</title>
+</head>
+<body>
+    <form action="/ruta_sa_postom" method="POST">
+        <p>
+            <label for="username">username</label>
+            <input type="text" name="username" value="{{ username }}">
+        </p>
+
+        <p>
+            <label for="password">Password</label>
+            <input type="password" name="password">
+            <span style="color: red;">{{ greska }}</span>
+        </p>
+
+        <p>
+            <label for="pol">Pol</label>
+            <input type="radio" name="pol" value="muski"> M
+            <input type="radio" name="pol" value="zenski"> Z
+        </p>
+
+        <p>
+            <label for="drzave">Drzave</label>
+            <select name="drzave" id="">
+                <option value="bg">Beograd</option>
+                <option value="ns">Novi Sad</option>
+            </select>
+        </p>
+
+        <p>
+            <input type="submit" value="posalji...">
+        </p>
+    </form>
+</body>
+</html>
