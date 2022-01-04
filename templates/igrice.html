@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Igrice</title>
+</head>
+<body>
+    <!-- <p>{{ igrice }}</p> -->
+
+    <table border="1" style="border-collapse: collapse;">
+        <tr>
+            <th>ID</th>
+            <th>Naziv</th>
+            <th>Opis</th>
+            <th>Godina</th>
+            <th>Zanr</th>
+            <th>Vrsta Igrice</th>
+            <th>Delete</th>
+            <th>Update</th>
+        </tr>
+        {% for igrica in igrice %}
+        <tr>
+            <td>{{ igrica[0] }}</td>
+            <td>
+                <a href="/sve_igrice/{{ igrica[0] }}">{{ igrica[1] }}</a>
+            </td>
+            <td>{{ igrica[2] }}</td>
+            <td>{{ igrica[3] }}</td>
+            <td>{{ igrica[4] }}</td>
+            <td>{{ igrica[5] }}</td>
+            <td>
+                <form action="/delete/{{ igrica[0] }}" method="POST">
+                    <input type="submit" value="obrisi">
+                </form>
+            </td>
+
+            <td>
+                <a href="/update/{{ igrica[0] }}">
+                    Update
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

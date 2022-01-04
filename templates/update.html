@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update</title>
+</head>
+<body>
+    <h2>Izmani igru</h2>
+    <form action="/update/{{ podaci[0] }}" method="POST">
+        <p>
+            <label for="naziv">Naziv</label>
+            <input type="text" name="naziv" value="{{ podaci[1] }}">
+        </p>
+        <!-- Preko name dohvatamo vrednosti -->
+
+        <p>
+            <label for="opis">Opis</label>
+            <input type="text" name="opis" value="{{ podaci[2] }}">
+        </p>
+
+        <p>
+            <label for="godina">Godina</label>
+            <input type="number" name="godina" value="{{ podaci[3] }}">
+        </p>
+
+
+
+        <!-- Dolazimo do ruzne sintakse -->
+        <!-- ako je podaci[4] jednak value onda hocu da ga check -->
+
+        <p>
+            <label for="zanr">Zanr</label>
+            <input type="radio" name="zanr" value="fantazija"
+                {% if "fantazija" == podaci[4] %}
+                    checked
+                {% endif %}
+            > Fantazija
+
+
+            <input type="radio" name="zanr" value="ratna"
+                {% if "ratna" == podaci[4] %}
+                    checked
+                {% endif %}
+            >  Ratna
+
+
+            <input type="radio" name="zanr" value="realna"
+                {% if "realna" == podaci[4] %}
+                    checked
+                {% endif %}
+            >  Realna
+        </p>
+
+        <p>
+            <label for="vrsta">Vrsta Igre</label>
+            <input type="checkbox" name="vrsta" value="rpg"> RPG
+            <input type="checkbox" name="vrsta" value="strategija"> Strategija
+            <input type="checkbox" name="vrsta" value="fps"> FPS
+        </p>
+
+        <p>
+            <input type="submit" value="Izmeni igricu...">
+        </p>
+    </form>
+</body>
+</html>

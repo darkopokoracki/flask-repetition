@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj Igricu</title>
+</head>
+<body>
+    <h1>Dodaj novu igru</h1>
+
+    <!-- post je zato sto saljemo podatke na obradu serveru -->
+    <form action="/dodaj_igricu" method="POST">
+        <p>
+            <label for="naziv">Naziv</label>
+            <input type="text" name="naziv">
+        </p>
+        <!-- Preko name dohvatamo vrednosti -->
+
+        <p>
+            <label for="opis">Opis</label>
+            <input type="text" name="opis">
+        </p>
+
+        <p>
+            <label for="godina">Godina</label>
+            <input type="number" name="godina">
+        </p>
+
+        <p>
+            <label for="zanr">Zanr</label>
+            <input type="radio" name="zanr" value="fantazija"> Fantazija
+            <input type="radio" name="zanr" value="ratna">  Ratna
+            <input type="radio" name="zanr" value="realna">  Realna
+        </p>
+
+        <p>
+            <label for="vrsta">Vrsta Igre</label>
+            <input type="checkbox" name="vrsta" value="rpg"> RPG
+            <input type="checkbox" name="vrsta" value="strategija"> Strategija
+            <input type="checkbox" name="vrsta" value="fps"> FPS
+        </p>
+
+        <p>
+            <input type="submit" value="dodaj igricu...">
+        </p>
+    </form>
+</body>
+</html>

@@ -1,14 +1,24 @@
 from flask import Flask #Iz modula flask importujemo klasu Flask
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for
+import mysql.connector
+
 
 app = Flask(__name__)
 #Pravimo jednu instancu aplikacije Flask preko dunder/magic atributa __name__
 # __name__ ima vrednost __main__ u svim fajlovima u kojima se pokrece
 
+mydb = mysql.connector.connect (
+    host = 'localhost',
+    user = 'root',
+    password = '',
+    database = 'baza_igrica' #naziv iz phpmyadmina
+)
+
+
 @app.route('/') #Dekorator dodaje neku dodatnu funkcionalnost funkciji
 @app.route('/home')
 def home():
-    return 'Hello World'
+    return 'Hello World sa bazom'
 
 
 @app.route('/nova_ruta')
@@ -244,12 +254,151 @@ def ruta_sa_postom():
         return drzava
 
 
+@app.route('/sve_igrice')
+def sve_igrice():
+    
+    cursor = mydb.cursor(prepared = True) #mydb je objekat koji slika ponasanje neke baze
+    # cursor je objekat koji nam omogucava da prolazimo kroz redove baze i da vrsimo upite nad bazom
+    sql = "SELECT * FROM Igrica"
+
+    cursor.execute(sql) #izvrsava sql upit
+    rez = cursor.fetchall()
+
+    n = len(rez)
+    m = len(rez[0])
+
+    for i in range(n):
+        rez[i] = list(rez[i]) #menjamo tuple u listu
+        for j in range(m):
+            if isinstance(rez[i][j], bytearray):  # isinstance(objekat, naziv_klase)
+                rez[i][j] = rez[i][j].decode()
+
+    return render_template(
+        'igrice.html',
+        igrice = rez
+    )
+    #Svaka ruta mora da vrati string kao rezultat
+
+@app.route("/dodaj_igricu", methods=['GET', 'POST'])
+def dodaj_igricu():
+    if request.method == 'GET':
+        return render_template(
+            'dodaj_igricu.html'
+        )
+
+    else:
+        #Nije bitno kojim metodom uzimamo podatke sa forme,
+        #recnik moze na ova dva nacina: 
+        naziv = request.form['naziv']
+        opis = request.form.get('opis')
+        godina = request.form['godina']
+        zanr = request.form['zanr']
+        vrsta_igre = request.form.getlist('vrsta')
+        vrsta_igre = ",".join(vrsta_igre)
+
+        cursor = mydb.cursor(prepared = True)
+        sql_statment = "INSERT INTO Igrica VALUES(null, ?, ?, ?, ?, ?)"
+        vrednosti = (naziv, opis, godina, zanr, vrsta_igre)
+        cursor.execute(sql_statment, vrednosti)
+
+        mydb.commit() #kada vrsimo neku izmenu nad bazom moramo da komitujemo
+
+        return redirect(
+            url_for('sve_igrice')
+        )
+        # prepared statment sprecava sql injection
+
+
+@app.route('/sve_igrice/<id_igrice>')
+def igrica_pojedinacno(id_igrice):
+
+    cursor = mydb.cursor(prepared = True)
+    sql = "SELECT * FROM Igrica WHERE igricaID=?"
+    parametar = (id_igrice, ) #mora da postoji zarez kada imamo jednu vrednost
+    #Da bi bio tuple tj. kolekcija slicna listi
+    cursor.execute(sql, parametar)
+
+    rez = cursor.fetchone()
+    #fetchone vraca None ako nemamo odgovarajuci Id u bazi
+    if rez == None:
+        return '<h1>ne postoji taj ID</h1>'
+
+    else:
+        rez = list(rez)
+        n = len(rez)
+        for i in range(n):
+            if isinstance(rez[i], bytearray):
+                rez[i] = rez[i].decode()
+
+        return render_template(
+            'igrica_pojedinacno.html',
+            igrica = rez
+        )
+
+    return id_igrice
+
+@app.route('/delete/<id_igrice>', methods=['POST'])
+def delete(id_igrice):
+    cursor = mydb.cursor(prepared = True)
+
+    sql = "DELETE FROM Igrica WHERE igricaID = ?"
+    vrednosti = (id_igrice, )
+
+    cursor.execute(sql ,vrednosti)
+    mydb.commit() #Posto menjamo stanje u bazi moramo da commitujemo
+
+    return redirect(
+        url_for('sve_igrice') #Ovo je ustvari naziv funkcije a nije putanja
+    )
+
+
+@app.route('/update/<id_igrice>', methods=['POST', 'GET'])
+def update(id_igrice):
+    if request.method == 'GET':
+        cursor = mydb.cursor(prepared = True)
+        sql = "SELECT * FROM Igrica WHERE igricaID=?"
+        parametar = (id_igrice, ) #mora da postoji zarez kada imamo jednu vrednost
+        #Da bi bio tuple tj. kolekcija slicna listi
+        cursor.execute(sql, parametar)
+
+        rez = cursor.fetchone()
+        #fetchone vraca None ako nemamo odgovarajuci Id u bazi
+        if rez == None:
+            return '<h1>ne postoji taj ID</h1>'
+        else:
+            rez = list(rez)
+            n = len(rez)
+            for i in range(n):
+                if isinstance(rez[i], bytearray):
+                    rez[i] = rez[i].decode()
+
+            return render_template(
+                'update.html',
+                podaci = rez
+            )
+
+    else:
+        naziv = request.form['naziv']
+        opis = request.form.get('opis')
+        godina = request.form['godina']
+        zanr = request.form.get('zanr')
+        vrsta_igre = request.form.getlist('vrsta')
+        vrsta_igre = ",".join(vrsta_igre)
+
+        cursor = mydb.cursor(prepared = True)
+        sql_statment = "UPDATE Igrica SET naziv=?, opis=?, godina=?, zanr=?, vrstaIgre=? WHERE igricaID = ?"
+        vrednosti = (naziv, opis, godina, zanr, vrsta_igre, id_igrice)
+        cursor.execute(sql_statment, vrednosti)
+
+        mydb.commit() #kada vrsimo neku izmenu nad bazom moramo da komitujemo
+
+        return redirect(
+            url_for('sve_igrice')
+        )
+
 
 
 app.run(debug = True) #pokrece aplikaciju
-
-
-
 
 
 
@@ -268,4 +417,8 @@ app.run(debug = True) #pokrece aplikaciju
 
 #Kada se trazi slanje forme, nikako nemoj koristiti GET request.
 
-#
+#Ekstenzija za flask: flask-snippets
+#za sada treba flask i mysql connector
+# kasnije ce nam trebati hashlib pip install hashlib!
+
+#input type=hidden?
