@@ -1,11 +1,13 @@
 from flask import Flask #Iz modula flask importujemo klasu Flask
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, session
 import mysql.connector
 
 
 app = Flask(__name__)
 #Pravimo jednu instancu aplikacije Flask preko dunder/magic atributa __name__
 # __name__ ima vrednost __main__ u svim fajlovima u kojima se pokrece
+
+app.config['SECRET_KEY'] = "sdnah237y7hdiajfn3o9af9ajm2dlamfdoq"
 
 mydb = mysql.connector.connect (
     host = 'localhost',
@@ -396,7 +398,125 @@ def update(id_igrice):
             url_for('sve_igrice')
         )
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'GET':
+        return render_template(
+            'register.html'
+        )
 
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        confirm = request.form['confirm']
+        email = request.form['email']
+        privilegija = request.form['privilegija']
+
+        cursor = mydb.cursor(prepared = True)
+        sql = "SELECT * FROM korisnik WHERE username=?"
+        value = (username, )
+        cursor.execute(sql, value)
+
+        res = cursor.fetchone()
+
+        if res != None:
+            return render_template(
+                'register.html',
+                username_error = 'Vec postoji nalog sa tim usernamom'
+            )
+
+        if password != confirm:
+            return render_template(
+                'register.html',
+                password_error = "Lozinke se ne poklapaju!"
+            )
+
+        cursor = mydb.cursor(prepared = True)
+        sql = "INSERT INTO korisnik VALUES(null, ?, ?, ?, ?)"
+        values = (username, password, email, privilegija)
+        cursor.execute(sql, values)
+        mydb.commit()
+
+        return "Usepsno ste se registrovali"
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'username' in session:
+        return redirect(
+            url_for('korisnici')
+        )
+
+    if request.method == 'GET':
+        return render_template(
+            'login.html'
+        )
+
+    else:
+        username = request.form['username']
+        password = request.form['password']
+
+        cursor = mydb.cursor(prepared = True)
+        sql = "SELECT * FROM korisnik WHERE username=?"
+        value = (username, )
+        cursor.execute(sql, value)
+
+        res = cursor.fetchone()
+
+        if res == None:
+            return render_template(
+                'login.html',
+                username_login_error = "Ovaj nalog ne postoji"
+            )
+
+        if password != str(res[2].decode()):
+            return render_template(
+                'login.html',
+                password_login_error = "Pogresna Sifra!"
+            )
+
+        session['username'] = username
+        session['privilegija'] = int(res[4])
+        return render_template(
+            'test_sesije.html'
+        )
+
+@app.route('/korisnici')
+def korisnici():
+    cursor = mydb.cursor(prepared = True)
+    sql = "SELECT * FROM korisnik"
+    cursor.execute(sql)
+
+    res = cursor.fetchall()
+
+    n = len(res)
+    for i in range(n):
+        res[i] = list(res[i])
+        m = len(res[i])
+        for j in range(m):
+            if isinstance(res[i][j], bytearray):
+                res[i][j] = res[i][j].decode()
+
+
+    return render_template(
+        'korisnici.html',
+        korisnici = res
+    )
+
+
+@app.route('/logout')
+def logout():
+    if 'username' in session:
+        session.pop('username')
+        session.pop('privilegija')
+
+        return redirect(
+            url_for('login')
+        )
+
+    else:
+        return redirect(
+            url_for('korisnici')
+        )
 
 app.run(debug = True) #pokrece aplikaciju
 
@@ -422,3 +542,13 @@ app.run(debug = True) #pokrece aplikaciju
 # kasnije ce nam trebati hashlib pip install hashlib!
 
 #input type=hidden?
+
+"""
+- sha256 se koristi.
+- Passwordovi se nikad ne cuvaju kao plain text
+- hashlib biblioteka se koristi za heshovanje
+- passwordi i osteljivei informacije cuvamo u formi hash-a
+- secrey key mora da postoji da bismo pristupili sesiji
+
+- Pristup sesiji imamo i u aplikaciji i na templejtu
+"""

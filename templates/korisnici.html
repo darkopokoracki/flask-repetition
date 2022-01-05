@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korisnici</title>
+</head>
+<body>
+    <h2>Korisnici</h2>
+
+    <h3>{{ korisnici }}</h3>
+
+    {% if 'username' not in session %}
+        <a href="/register">Register</a>
+        <a href="/login">Login</a>
+    {% endif %}
+
+    {% if 'username' in session and session['privilegija'] == 3 %}
+        <p>Admin Panel</p>
+    {% endif %}
+
+    {% if 'username' in session and session['privilegija'] == 2 %}
+        <a href="/logout">Logout</a>
+    {% endif %}
+
+    {% if 'username' in session and session['privilegija'] == 1 %}
+    <a href="/logout">Logout</a>
+    {% endif %}
+
+    <table border="1" style="border-collapse: collapse;">
+        <tr>
+            <th>Id</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Privilegija</th>
+        </tr>
+        {% for korisnik in korisnici %}
+        <tr>
+            <td>{{ korisnik[0] }}</td>
+            <td>{{ korisnik[1] }}</td>
+            <td>{{ korisnik[3] }}</td>
+            <td>{{ korisnik[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
