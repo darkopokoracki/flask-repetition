@@ -1,5 +1,6 @@
 from flask import Flask #Iz modula flask importujemo klasu Flask
 from flask import render_template, request, redirect, url_for, session
+from werkzeug.utils import secure_filename
 import mysql.connector
 
 
@@ -517,6 +518,120 @@ def logout():
         return redirect(
             url_for('korisnici')
         )
+
+
+@app.route('/osnova')
+def osnova():
+    return render_template(
+        'base.html'
+    )
+
+@app.route('/izvedeni_sablon')
+def izvedeni():
+    return render_template(
+        'izvedeni.html'
+    )
+
+
+@app.route('/pocetna')
+def pocetna():
+    return render_template(
+        'pocetna.html',
+        naziv_stranice = 'pocetna'
+    )
+
+
+@app.route('/kontakt')
+def kontakt():
+    return render_template(
+        'kontakt.html',
+        naziv_stranice = 'kontakt'
+    )
+
+
+@app.route('/galerija')
+def galerija():
+    return render_template(
+        'galerija.html',
+        naziv_stranice = 'galerija'
+    )
+
+@app.route('/prijava', methods=['GET', 'POST'])
+def prijava():
+    if request.method == 'GET':
+        return render_template(
+            'prijava.html'
+        )
+
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        cursor = mydb.cursor(prepared = True)
+        sql = "SELECT * FROM korisnik WHERE username =?"
+        value = (username, )
+        cursor.execute(sql, value)
+
+        result = cursor.fetchone()
+
+        if result == None:
+            return render_template(
+                'prijava.html',
+                prijava_username_error = 'Ne postoji taj korisnik'
+            )
+
+        n = len(result)
+        result = list(result)
+        for i in range(n):
+            if isinstance(result[i], bytearray):
+                result[i] = result[i].decode()
+
+        if password != result[2]:
+            return render_template(
+                'prijava.html',
+                prijava_password_error = "Pogresna lozinka"
+            )
+
+        session['username'] = username
+        session['vrsta_korisnika'] = result[4]
+
+        return "Usepsno ste se ulogovali..."
+
+@app.route('/odjava')
+def odjava():
+    if 'username' in session:
+        session.pop('username')
+        session.pop('privilegija')
+    return redirect(
+        url_for('login')  
+    )
+
+
+app.config['UPLOAD_FOLDER'] = 'static/images' # ne sme da ima vodeci /! vraca gresku koju je tesko uociti
+@app.route('/slike_u_formi',methods=["POST","GET"])
+def slike_u_formi():
+	if request.method == "GET":
+		return render_template(
+			'forma_sa_slikama.html'
+		)
+	file = request.files['slika_cv'] # dohvatamo fajl iz requesta 
+
+	if not file: # pitamo da li ne postoji fajl, tj da li nije izabran 
+		return "Fajl nije zakazen u formi!" # ako nije izabran, prikazujemo gresku 
+	DOZVOLJENE_EKSTENZIJE = ['jpg','png',"pdf","txt"]
+	ekstenzija =  file.filename.split('.')[-1] # splitujem po tacki da bih uzeo poslednju poziciju
+	# fajl.jpg -> split po . 
+	# -> ['fajl', 'jpg' ]
+	# -> ['fajl', 'jpg' ] [-1] -> jpg
+	import os.path
+	# ".".join['fajl','jpg'] -> fajl.jpg 
+	if file and ekstenzija in DOZVOLJENE_EKSTENZIJE:
+		filename = secure_filename(file.filename)
+		file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+	return f"Fajl sacuvan pod nazivom {filename}!" # vracamo kao rezultat naziv fajla 
+
+
 
 app.run(debug = True) #pokrece aplikaciju
 
